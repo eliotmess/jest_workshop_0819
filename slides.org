@@ -1,0 +1,159 @@
+* Jest.io
+** Test runner
+** Made by facebook
+** Great for component tesing
+** JSDOM included
+** Alternatives: Mocha/Karma
+* Intro
+** Easy = !Hard
+** Simple = !Complex
+* Unit testing overview
+** Concept
+*** In computer programming, unit testing is a software testing method by which individual units of source code,
+*** sets of one or more computer program modules together with associated control data,
+*** usage procedures, and operating procedures, are tested to determine whether they are fit for use
+** When do unit testing?
+*** Business logic
+#+BEGIN_SRC javascript
+  const importantFunction = () => {}; // TODO: test it
+#+END_SRC
+*** When fail can hurt
+#+BEGIN_SRC javascript
+describe('First Reducers', () => {
+  it('should return default state ', () => {
+    const state = firstReducer(undefined as any, {} as any);
+    expect(state).toEqual({
+      data: null,
+      isLoading: false,
+      isError: false,
+    });
+  });
+});
+#+END_SRC
+
+#+BEGIN_SRC javascript
+describe('First Reducers', () => {
+  it('should return prev state ', () => {
+    const newState = firstReducer(state, { type: 'not exist'});
+    expect(newState).toBe(state);
+  });
+});
+#+END_SRC
+*** When we aren't sure
+#+BEGIN_SRC typescript
+export const selectSiblingLessonIds = (lessonId: string) => (store: RootStore) => {
+  const chapters = store.chapter.data;
+  const { id: lessonChapterId } = selectLessonChapter(lessonId)(store);
+  const lessons = flatten(chapters.map((chapter) => chapter.lessons));
+  const lesson = lessons.find(({id}) => lessonId === id) as Lesson;
+  const lessonIndex = lessons.indexOf(lesson);
+  const previousLesson = lessons[lessonIndex - 1];
+  const previousLessonId = previousLesson ? previousLesson.id : null;
+  const nextLesson = lessons[lessonIndex + 1];
+  const nextLessonId = nextLesson ? nextLesson.id : null;
+
+  return {
+    prev: previousLessonId,
+    next: nextLessonId,
+    isPrevChapterTheSame: previousLessonId !== null && lessonChapterId === selectLessonChapter(previousLessonId)(store).id,
+    isNextChapterTheSame: nextLessonId !== null && lessonChapterId === selectLessonChapter(nextLessonId)(store).id,
+  };
+};
+#+END_SRC
+#+BEGIN_SRC typescript
+it('should returns prev and next lesson id', () => {
+    const {prev, next, isNextChapterTheSame, isPrevChapterTheSame} = selectSiblingLessonIds('4')(state);
+    expect(prev).toBe('3');
+    expect(next).toBe('5');
+    expect(isPrevChapterTheSame).toBe(true);
+    expect(isNextChapterTheSame).toBe(true);
+});
+
+it('should returns prev and next lesson id', () => {
+    const {prev, next, isPrevChapterTheSame, isNextChapterTheSame} = selectSiblingLessonIds('2')(state);
+    expect(prev).toBe('1');
+    expect(next).toBe('3');
+    expect(isPrevChapterTheSame).toBe(true);
+    expect(isNextChapterTheSame).toBe(false);
+});
+
+it('should returns prev and next lesson id', () => {
+    const {prev, next, isPrevChapterTheSame, isNextChapterTheSame} = selectSiblingLessonIds('6')(state);
+    expect(prev).toBe('5');
+    expect(next).toBe('7');
+    expect(isPrevChapterTheSame).toBe(false);
+    expect(isNextChapterTheSame).toBe(true);
+});
+#+END_SRC
+*** When code is ugly or hard to understood
+#+BEGIN_SRC typescript
+export const createRelationship = <T extends { id: string }>(
+  includedItems: Array<DataResponse<T>>,
+  categories: Array<{ id: string, type: string }>,
+): Array<T> => {
+  return categories.map(({id}) =>
+    includedItems.find((includedItem) => includedItem.id === id) as DataResponse<T>)
+  .map(flatAttributes) as Array<T>;
+};
+#+END_SRC
+
+#+BEGIN_SRC typescript
+it('should create relationships based od ids', () => {
+    const relationship = [
+        { id: '1', type: 'xxx' },
+        { id: '3', type: 'xxx' },
+    ];
+    const includedItems = [
+        { id: '1', type: 'xxx', key: 'value1' },
+        { id: '3', type: 'xxx', key: 'value3' },
+        { id: '2', type: 'abc', key: 'value2' },
+    ];
+
+    expect(createRelationship(includedItems, relationship)).toEqual([
+        { id: '1', type: 'xxx', key: 'value1' },
+        { id: '3', type: 'xxx', key: 'value3' },
+    ]);
+});
+#+END_SRC
+** Steps
+#+BEGIN_SRC javascript
+  it('should accept ipfs content type', () => {
+    // given
+    const contentType = 'ipfs';
+    // when
+    const result = sut.canHandle(contentType);
+    // then
+    expect(result).to.equal(true);
+  });
+#+END_SRC
+* Tesitng functions
+** Concept
+#+BEGIN_SRC typescript
+let fn = (...argruments) => output
+
+expect(fn(42, 44)).toEqual(43);
+#+END_SRC
+* Testing classes
+#+BEGIN_SRC typescript
+const item = new Item();
+
+const result = item.method();
+expect(result).toEqual(42);
+expect(item.attribute).toEqual(44);
+#+END_SRC
+* Mocks
+#+BEGIN_SRC typescript
+const functionMock = jest.fn();
+
+testedService.method(functionMock);
+
+expected(functionMock).toBeCalled();
+#+END_SRC
+* Spy
+#+BEGIN_SRC typescript
+const spy = jest.spyOn(service, 'methodName');
+
+testedService.method();
+
+expected(spy).toBeCalled();
+#+END_SRC
