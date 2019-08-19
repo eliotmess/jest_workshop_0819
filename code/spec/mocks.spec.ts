@@ -57,6 +57,7 @@ describe('tests for mocks.ts and species.ts', () => {
         methodSpy.mockImplementation(() => lastAttrVal > 42 ? 'end' : incrementAttr());
         class4.method();
         expect(methodSpy.mock.results[0].value).toBe('increment');
+        lastAttrVal = service1Mock.get();
         class4.method();
         expect(methodSpy.mock.results[1].value).toBe('end');
     });
